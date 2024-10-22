@@ -1,75 +1,86 @@
-/* eslint-disable no-return-await */
-export default class Table {
-  constructor(page, nth = 0) {
-    this.page = page;
-    // tabel locators
-    this.table = this.page.locator('.table').nth(nth);
-    this.highlightTable = this.page.locator('.table.highlight').nth(nth);
-    this.stickyTable = this.page.locator('.table.sticky').nth(nth);
-    this.collapseStickyTable = this.page.locator('.table.highlight.collapse.sticky').nth(nth);
-    this.merchTable = this.page.locator('.table.merch').nth(nth);
-    this.merchHighlightStickyTable = this.page.locator('.table.merch.highlight.sticky').nth(nth);
+/*
+ * Table Block
+ * Recreate a table
+ * https://www.hlx.live/developer/block-collection/table
+ */
 
-    this.highlightRow = this.table.locator('.row-highlight');
-    this.headingRow = this.table.locator('.row-heading');
-    this.stickyRow = this.table.locator('.row-heading');
+function buildCell(rowIndex) {
+  const cell = rowIndex ? document.createElement('td') : document.createElement('th');
+  if (!rowIndex) cell.setAttribute('scope', 'col');
+  return cell;
+}
 
-    this.headingRowColumns = this.headingRow.locator('.col');
-    this.rows = this.table.locator('.row');
-    this.sectionRows = this.table.locator('.section-row');
-  }
+export default async function decorate(block) {
+  const table = document.createElement('table');
+  const thead = document.createElement('thead');
+  const tbody = document.createElement('tbody');
 
-  async getHighlightRowColumnTitle(colIndex) {
-    return await this.highlightRow.locator('.col-highlight').nth(colIndex);
-  }
+  const header = !block.classList.contains('no-header');
+  if (header) table.append(thead);
+  table.append(tbody);
 
-  async getHeaderColumnTitle(colIndex) {
-    const headerColumn = await this.headingRow.locator(`.col-${colIndex}`);
-    return headerColumn.locator('.tracking-header');
-  }
+  [...block.children].forEach((child, i) => {
+    const row = document.createElement('tr');
+    if (header && i === 0) thead.append(row);
+    else tbody.append(row);
+    [...child.children].forEach((col) => {
+      const cell = buildCell(header ? i : i + 1);
+      cell.innerHTML = col.innerHTML;
+      row.append(cell);
+    });
+  });
+  block.innerHTML = '';
+  block.append(table);
+  
+const cTable = document.querySelectorAll('.table');
 
-  async getHeaderColumnPricing(colIndex) {
-    const headerColumn = await this.headingRow.locator(`.col-${colIndex}`);
-    return headerColumn.locator('.pricing');
-  }
+console.log('cTable', cTable);
 
-  async getHeaderColumnImg(colIndex) {
-    const headerColumn = await this.headingRow.locator(`.col-${colIndex}`);
-    return headerColumn.locator('img');
-  }
+cTable.forEach(table => {
 
-  async getHeaderColumnAdditionalText(colIndex) {
-    const headerColumn = await this.headingRow.locator(`.col-${colIndex}`);
-    return headerColumn.locator('p').nth(3);
-  }
+    // Get all rows in the current table
 
-  async getHeaderColumnOutlineButton(colIndex) {
-    const headerColumn = await this.headingRow.locator(`.col-${colIndex}`);
-    return headerColumn.locator('.con-button.outline');
-  }
+    const rows = table.getElementsByTagName('tr');
+ 
+    // Check if there are rows
 
-  async getHeaderColumnBlueButton(colIndex) {
-    const headerColumn = await this.headingRow.locator(`.col-${colIndex}`);
-    return headerColumn.locator('.con-button.blue');
-  }
+    if (rows.length > 0) {
 
-  async getSectionRowTitle(index) {
-    const sectionRow = await this.table.locator('.section-row').nth(index);
-    return sectionRow.locator('.section-row-title');
-  }
+        // Get the last row
 
-  async getSectionRowMerchContent(index) {
-    const sectionRow = await this.table.locator('.section-row').nth(index);
-    return sectionRow.locator('.col-merch-content').nth(0);
-  }
+        const lastRow = rows[rows.length - 1];
+ 
+        // Get all cells in the last row
 
-  async getSectionRowMerchContentImg(index) {
-    const sectionRow = await this.table.locator('.section-row').nth(index);
-    return sectionRow.locator('.col-merch-content img');
-  }
+        const cells = lastRow.getElementsByTagName('td');
+ 
+        // Check if there are at least two cells
 
-  async getSectionRowCell(rowIndex, colIndex) {
-    const sectionRow = await this.table.locator('.section-row').nth(rowIndex);
-    return sectionRow.locator(`.col-${colIndex}`);
-  }
+        if (cells.length >= 2) {
+
+            // Create a new cell with colspan of 2
+
+            const mergedCell = document.createElement('td');
+
+            mergedCell.setAttribute("colspan", "2");
+
+            mergedCell.style.backgroundColor = 'yellow'; // Set background color
+
+            mergedCell.textContent = cells[0].textContent; // Copy text from the first cell
+ 
+            // Clear the last row
+
+            lastRow.innerHTML = '';
+ 
+            // Append the new merged cell to the last row
+
+            lastRow.appendChild(mergedCell);
+
+        }
+
+    }
+
+});
+
+ 
 }
