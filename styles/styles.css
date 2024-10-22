@@ -86,7 +86,8 @@ body.appear {
  
 header {
     height: var(--nav-height);
-   }
+    background: yellow;
+}
  
 header .header,
 footer .footer {
